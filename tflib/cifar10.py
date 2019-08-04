@@ -11,7 +11,7 @@ def unpickle(file):
 def cifar_generator(filenames, batch_size, data_dir):
     all_data = []
     for filename in filenames:
-        all_data.append(unpickle(data_dir + '/' + filename))
+        all_data.append(unpickle(data_dir + filename))
 
     images = np.concatenate(all_data, axis=0)
 

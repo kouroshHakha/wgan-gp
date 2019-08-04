@@ -4,8 +4,9 @@ sys.path.append(os.getcwd())
 import time
 from tflib import save_images
 from tflib import inception_score
-from tflib import cifar10
 from tflib import plot
+
+from hw4.data_loader import get_data
 
 import numpy as np
 
@@ -16,13 +17,6 @@ from torch import nn
 from torch import autograd
 from torch import optim
 
-# Download CIFAR-10 (Python version) at
-# https://www.cs.toronto.edu/~kriz/cifar.html and fill in the path to the
-# extracted files here!
-DATA_DIR = 'cifar-10-batches-py/'
-if len(DATA_DIR) == 0:
-    raise Exception('Please specify path to data directory in gan_cifar.py!')
-
 MODE = 'wgan-gp' # Valid options are dcgan, wgan, or wgan-gp
 DIM = 128 # This overfits substantially; you're probably better off with 64
 LAMBDA = 10 # Gradient penalty lambda hyperparameter
@@ -30,14 +24,15 @@ CRITIC_ITERS = 5 # How many critic iterations per generator iteration
 BATCH_SIZE = 64 # Batch size
 ITERS = 200000 # How many generator iterations to train for
 OUTPUT_DIM = 3072 # Number of pixels in CIFAR10 (3*32*32)
+os.makedirs('./tmp/cifar10/')
 
-
+train_loader, test_loader, _ = get_data('../data', BATCH_SIZE)
 class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
         preprocess = nn.Sequential(
             nn.Linear(128, 4 * 4 * 4 * DIM),
-            nn.BatchNorm2d(4 * 4 * 4 * DIM),
+            nn.BatchNorm1d(4 * 4 * 4 * DIM),
             nn.ReLU(True),
         )
 
@@ -114,7 +109,7 @@ optimizerG = optim.Adam(netG.parameters(), lr=1e-4, betas=(0.5, 0.9))
 def calc_gradient_penalty(netD, real_data, fake_data):
     # print "real_data: ", real_data.size(), fake_data.size()
     alpha = torch.rand(BATCH_SIZE, 1)
-    alpha = alpha.expand(BATCH_SIZE, real_data.nelement()/BATCH_SIZE).contiguous().view(BATCH_SIZE, 3, 32, 32)
+    alpha = alpha.expand(BATCH_SIZE, real_data.nelement()//BATCH_SIZE).view(BATCH_SIZE, 3, 32, 32)
     alpha = alpha.cuda(gpu) if use_cuda else alpha
 
     interpolates = alpha * real_data + ((1 - alpha) * fake_data)
@@ -163,10 +158,10 @@ def get_inception_score(G, ):
     return inception_score.get_inception_score(list(all_samples))
 
 # Dataset iterator
-train_gen, dev_gen = cifar10.load(BATCH_SIZE, data_dir=DATA_DIR)
+train_gen, dev_gen = train_loader, test_loader
 def inf_train_gen():
     while True:
-        for images, target in train_gen():
+        for images, target in train_gen:
             # yield images.astype('float32').reshape(BATCH_SIZE, 3, 32, 32).transpose(0, 2, 3, 1)
             yield images
 gen = inf_train_gen()
@@ -183,12 +178,12 @@ for iteration in range(ITERS):
     for p in netD.parameters():  # reset requires_grad
         p.requires_grad = True  # they are set to False below in netG update
     for i in range(CRITIC_ITERS):
-        _data = gen.next()
+        _data = next(gen)
         netD.zero_grad()
 
         # train with real
-        _data = _data.reshape(BATCH_SIZE, 3, 32, 32).transpose(0, 2, 3, 1)
-        real_data = torch.stack([preprocess(item) for item in _data])
+        _data = _data.reshape(BATCH_SIZE, 3, 32, 32).permute(0, 2, 3, 1)
+        real_data = torch.stack([preprocess(item.numpy()) for item in _data])
 
         if use_cuda:
             real_data = real_data.cuda(gpu)
@@ -255,8 +250,8 @@ for iteration in range(ITERS):
     if iteration % 100 == 99:
         dev_disc_costs = []
         for images, _ in dev_gen():
-            images = images.reshape(BATCH_SIZE, 3, 32, 32).transpose(0, 2, 3, 1)
-            imgs = torch.stack([preprocess(item) for item in images])
+            images = images.reshape(BATCH_SIZE, 3, 32, 32).permute(0, 2, 3, 1)
+            imgs = torch.stack([preprocess(item.numpy()) for item in images])
 
             # imgs = preprocess(images)
             if use_cuda:
