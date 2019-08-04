@@ -2,12 +2,10 @@ import os, sys
 sys.path.append(os.getcwd())
 
 import time
-import tflib as lib
-import tflib.save_images
-import tflib.mnist
-import tflib.cifar10
-import tflib.plot
-import tflib.inception_score
+from tflib import save_images
+from tflib import inception_score
+from tflib import cifar10
+from tflib import plot
 
 import numpy as np
 
@@ -147,7 +145,7 @@ def generate_image(frame, netG):
     samples = samples.mul(0.5).add(0.5)
     samples = samples.cpu().data.numpy()
 
-    lib.save_images.save_images(samples, './tmp/cifar10/samples_{}.jpg'.format(frame))
+    save_images.save_images(samples, './tmp/cifar10/samples_{}.jpg'.format(frame))
 
 # For calculating inception score
 def get_inception_score(G, ):
@@ -162,10 +160,10 @@ def get_inception_score(G, ):
     all_samples = np.concatenate(all_samples, axis=0)
     all_samples = np.multiply(np.add(np.multiply(all_samples, 0.5), 0.5), 255).astype('int32')
     all_samples = all_samples.reshape((-1, 3, 32, 32)).transpose(0, 2, 3, 1)
-    return lib.inception_score.get_inception_score(list(all_samples))
+    return inception_score.get_inception_score(list(all_samples))
 
 # Dataset iterator
-train_gen, dev_gen = lib.cifar10.load(BATCH_SIZE, data_dir=DATA_DIR)
+train_gen, dev_gen = cifar10.load(BATCH_SIZE, data_dir=DATA_DIR)
 def inf_train_gen():
     while True:
         for images, target in train_gen():
@@ -243,15 +241,15 @@ for iteration in range(ITERS):
     optimizerG.step()
 
     # Write logs and save samples
-    lib.plot.plot('./tmp/cifar10/train disc cost', D_cost.cpu().data.numpy())
-    lib.plot.plot('./tmp/cifar10/time', time.time() - start_time)
-    lib.plot.plot('./tmp/cifar10/train gen cost', G_cost.cpu().data.numpy())
-    lib.plot.plot('./tmp/cifar10/wasserstein distance', Wasserstein_D.cpu().data.numpy())
+    plot.plot('./tmp/cifar10/train disc cost', D_cost.cpu().data.numpy())
+    plot.plot('./tmp/cifar10/time', time.time() - start_time)
+    plot.plot('./tmp/cifar10/train gen cost', G_cost.cpu().data.numpy())
+    plot.plot('./tmp/cifar10/wasserstein distance', Wasserstein_D.cpu().data.numpy())
 
     # Calculate inception score every 1K iters
     if False and iteration % 1000 == 999:
         inception_score = get_inception_score(netG)
-        lib.plot.plot('./tmp/cifar10/inception score', inception_score[0])
+        plot.plot('./tmp/cifar10/inception score', inception_score[0])
 
     # Calculate dev loss and generate samples every 100 iters
     if iteration % 100 == 99:
@@ -268,11 +266,11 @@ for iteration in range(ITERS):
             D = netD(imgs_v)
             _dev_disc_cost = -D.mean().cpu().data.numpy()
             dev_disc_costs.append(_dev_disc_cost)
-        lib.plot.plot('./tmp/cifar10/dev disc cost', np.mean(dev_disc_costs))
+        plot.plot('./tmp/cifar10/dev disc cost', np.mean(dev_disc_costs))
 
         generate_image(iteration, netG)
 
     # Save logs every 100 iters
     if (iteration < 5) or (iteration % 100 == 99):
-        lib.plot.flush()
-    lib.plot.tick()
+        plot.flush()
+    plot.tick()
