@@ -255,7 +255,7 @@ for iteration in range(ITERS):
     if iteration % 100 == 99:
         dev_disc_costs = []
         for images, _ in dev_gen:
-            images = images.reshape(BATCH_SIZE, 3, 32, 32).permute(0, 2, 3, 1)
+            # images = images.reshape(BATCH_SIZE, 3, 32, 32).permute(0, 2, 3, 1)
             imgs = torch.stack([preprocess(item.numpy()) for item in images])
 
             # imgs = preprocess(images)
