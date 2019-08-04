@@ -113,8 +113,9 @@ optimizerG = optim.Adam(netG.parameters(), lr=1e-4, betas=(0.5, 0.9))
 
 def calc_gradient_penalty(netD, real_data, fake_data):
     # print "real_data: ", real_data.size(), fake_data.size()
-    alpha = torch.rand(BATCH_SIZE, 1)
-    alpha = alpha.expand(BATCH_SIZE, real_data.nelement()//BATCH_SIZE).view(BATCH_SIZE, 3, 32, 32)
+    n_size = real_data.shape[0]
+    alpha = torch.rand(n_size, 1)
+    alpha = alpha.expand(n_size, real_data.nelement()//n_size).view(n_size, 3, 32, 32)
     alpha = alpha.cuda(gpu) if use_cuda else alpha
 
     interpolates = alpha * real_data + ((1 - alpha) * fake_data)
@@ -189,6 +190,7 @@ for iteration in range(ITERS):
 
         # train with real
         _data = _data.permute(0, 2, 3, 1)
+        n_size = _data.shape[0]
         real_data = torch.stack([preprocess(item.numpy()) for item in _data])
 
         if use_cuda:
@@ -204,7 +206,7 @@ for iteration in range(ITERS):
         D_real.backward(mone)
 
         # train with fake
-        noise = torch.randn(BATCH_SIZE, 128)
+        noise = torch.randn(n_size, 128)
         if use_cuda:
             noise = noise.cuda(gpu)
         noisev = autograd.Variable(noise, volatile=True)  # totally freeze netG
