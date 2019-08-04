@@ -3,12 +3,11 @@ Image grid saver, based on color_grid_vis from github.com/Newmu
 """
 
 import numpy as np
-import scipy.misc
 from scipy.misc import imsave
 
 def save_images(X, save_path):
     # [0, 1] -> [0,255]
-    if isinstance(X.flatten()[0], np.floating):
+    if isinstance(X.flatten()[0], np.float):
         X = (255.99*X).astype('uint8')
 
     n_samples = X.shape[0]
