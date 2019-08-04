@@ -175,7 +175,6 @@ preprocess = torchvision.transforms.Compose([
                                torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                            ])
 
-generate_image(0, netG)
 
 for iteration in range(ITERS):
     start_time = time.time()
