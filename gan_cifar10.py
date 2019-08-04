@@ -24,7 +24,11 @@ CRITIC_ITERS = 5 # How many critic iterations per generator iteration
 BATCH_SIZE = 64 # Batch size
 ITERS = 200000 # How many generator iterations to train for
 OUTPUT_DIM = 3072 # Number of pixels in CIFAR10 (3*32*32)
-os.makedirs('./tmp/cifar10/')
+try:
+    os.makedirs('./tmp/cifar10/')
+except FileExistsError:
+    os.rmdir('./tmp/cifar10/')
+    os.makedirs('./tmp/cifar10/')
 
 train_loader, test_loader, _ = get_data('../data', BATCH_SIZE)
 class Generator(nn.Module):
