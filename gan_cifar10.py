@@ -188,7 +188,7 @@ for iteration in range(ITERS):
         netD.zero_grad()
 
         # train with real
-        _data = _data.reshape(BATCH_SIZE, 3, 32, 32).permute(0, 2, 3, 1)
+        _data = _data.permute(0, 2, 3, 1)
         real_data = torch.stack([preprocess(item.numpy()) for item in _data])
 
         if use_cuda:
