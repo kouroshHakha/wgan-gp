@@ -143,7 +143,7 @@ def generate_image(frame, netG):
     samples = netG(noisev)
     samples = samples.view(-1, 3, 32, 32)
     samples = samples.mul(0.5).add(0.5)
-    samples = samples.cpu().data.numpy()
+    samples = samples.cpu().data.numpy().as_type(int)
 
     save_images.save_images(samples, './tmp/cifar10/samples_{}.jpg'.format(frame))
 
