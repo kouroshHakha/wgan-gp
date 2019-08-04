@@ -1,4 +1,5 @@
 import os, sys
+import shutil
 sys.path.append(os.getcwd())
 
 import time
@@ -27,7 +28,7 @@ OUTPUT_DIM = 3072 # Number of pixels in CIFAR10 (3*32*32)
 try:
     os.makedirs('./tmp/cifar10/')
 except FileExistsError:
-    os.rmdir('./tmp/cifar10/')
+    shutil.rmtree('./tmp/cifar10/')
     os.makedirs('./tmp/cifar10/')
 
 train_loader, test_loader, _ = get_data('../data', BATCH_SIZE)
